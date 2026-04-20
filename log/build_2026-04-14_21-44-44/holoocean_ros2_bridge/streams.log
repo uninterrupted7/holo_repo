@@ -1,0 +1,19 @@
+[0.308s] Invoking command in '/home/asemiz/ros2_ws/build/holoocean_ros2_bridge': PYTHONPATH=/home/asemiz/ros2_ws/build/holoocean_ros2_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/build --no-deps symlink_data
+[0.431s] running develop
+[0.501s] running egg_info
+[0.501s] writing holoocean_ros2_bridge.egg-info/PKG-INFO
+[0.501s] writing dependency_links to holoocean_ros2_bridge.egg-info/dependency_links.txt
+[0.501s] writing entry points to holoocean_ros2_bridge.egg-info/entry_points.txt
+[0.501s] writing requirements to holoocean_ros2_bridge.egg-info/requires.txt
+[0.501s] writing top-level names to holoocean_ros2_bridge.egg-info/top_level.txt
+[0.502s] reading manifest file 'holoocean_ros2_bridge.egg-info/SOURCES.txt'
+[0.503s] writing manifest file 'holoocean_ros2_bridge.egg-info/SOURCES.txt'
+[0.503s] running build_ext
+[0.503s] Creating /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean-ros2-bridge.egg-link (link to .)
+[0.504s] Installing dashboard_server script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.504s] Installing holoocean_bridge script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.504s] Installing vessel_teleop script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.504s] 
+[0.504s] Installed /home/asemiz/ros2_ws/build/holoocean_ros2_bridge
+[0.504s] running symlink_data
+[0.518s] Invoked command in '/home/asemiz/ros2_ws/build/holoocean_ros2_bridge' returned '0': PYTHONPATH=/home/asemiz/ros2_ws/build/holoocean_ros2_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/build --no-deps symlink_data

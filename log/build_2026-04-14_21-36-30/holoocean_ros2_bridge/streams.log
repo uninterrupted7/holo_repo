@@ -1,0 +1,28 @@
+[0.305s] Invoking command in '/home/asemiz/ros2_ws/build/holoocean_ros2_bridge': PYTHONPATH=/home/asemiz/ros2_ws/build/holoocean_ros2_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/build --no-deps symlink_data --force
+[0.429s] running develop
+[0.497s] running egg_info
+[0.497s] writing holoocean_ros2_bridge.egg-info/PKG-INFO
+[0.497s] writing dependency_links to holoocean_ros2_bridge.egg-info/dependency_links.txt
+[0.497s] writing entry points to holoocean_ros2_bridge.egg-info/entry_points.txt
+[0.497s] writing requirements to holoocean_ros2_bridge.egg-info/requires.txt
+[0.497s] writing top-level names to holoocean_ros2_bridge.egg-info/top_level.txt
+[0.498s] reading manifest file 'holoocean_ros2_bridge.egg-info/SOURCES.txt'
+[0.499s] writing manifest file 'holoocean_ros2_bridge.egg-info/SOURCES.txt'
+[0.499s] running build_ext
+[0.499s] Creating /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean-ros2-bridge.egg-link (link to .)
+[0.500s] Installing dashboard_server script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.500s] Installing holoocean_bridge script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.500s] Installing vessel_teleop script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.500s] 
+[0.500s] Installed /home/asemiz/ros2_ws/build/holoocean_ros2_bridge
+[0.500s] running symlink_data
+[0.500s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/resource/holoocean_ros2_bridge -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/ament_index/resource_index/packages
+[0.500s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/package.xml -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge
+[0.500s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/launch/bridge.launch.py -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/launch
+[0.500s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/config/surface_mapping_scenario.json -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/config
+[0.500s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/rviz/mapping.rviz -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/rviz
+[0.501s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/scripts/vessel_teleop_wrapper.sh -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/scripts
+[0.501s] symbolically linking /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/scripts/rviz2_wrapper.sh -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/scripts
+[0.501s] creating /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/dashboard
+[0.501s] error: [Errno 2] No such file or directory: '/home/asemiz/ros2_ws/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/dashboard/asv_dashboard.html'
+[0.513s] Invoked command in '/home/asemiz/ros2_ws/build/holoocean_ros2_bridge' returned '1': PYTHONPATH=/home/asemiz/ros2_ws/build/holoocean_ros2_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/build --no-deps symlink_data --force

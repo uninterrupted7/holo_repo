@@ -1,0 +1,17 @@
+running develop
+running egg_info
+writing holoocean_ros2_bridge.egg-info/PKG-INFO
+writing dependency_links to holoocean_ros2_bridge.egg-info/dependency_links.txt
+writing entry points to holoocean_ros2_bridge.egg-info/entry_points.txt
+writing requirements to holoocean_ros2_bridge.egg-info/requires.txt
+writing top-level names to holoocean_ros2_bridge.egg-info/top_level.txt
+reading manifest file 'holoocean_ros2_bridge.egg-info/SOURCES.txt'
+writing manifest file 'holoocean_ros2_bridge.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean-ros2-bridge.egg-link (link to .)
+Installing dashboard_server script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+Installing holoocean_bridge script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+Installing vessel_teleop script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+
+Installed /home/asemiz/ros2_ws/build/holoocean_ros2_bridge
+running symlink_data

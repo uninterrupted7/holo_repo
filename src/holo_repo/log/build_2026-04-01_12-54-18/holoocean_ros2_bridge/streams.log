@@ -1,0 +1,26 @@
+[0.439s] Invoking command in '/home/yeni-nesil-ida/holo_repo/src/holoocean_repo': PYTHONPATH=/home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/holoocean_ros2_bridge build --build-base /home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/build install --record /home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/install.log --single-version-externally-managed install_data
+[0.586s] running egg_info
+[0.586s] writing ../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/PKG-INFO
+[0.586s] writing dependency_links to ../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/dependency_links.txt
+[0.586s] writing entry points to ../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/entry_points.txt
+[0.586s] writing requirements to ../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/requires.txt
+[0.587s] writing top-level names to ../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/top_level.txt
+[0.587s] reading manifest file '../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/SOURCES.txt'
+[0.588s] writing manifest file '../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/SOURCES.txt'
+[0.588s] running build
+[0.588s] running build_py
+[0.588s] copying holoocean_ros2_bridge/vessel_teleop_node.py -> /home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/build/lib/holoocean_ros2_bridge
+[0.588s] running install
+[0.588s] running install_lib
+[0.589s] copying /home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/build/lib/holoocean_ros2_bridge/vessel_teleop_node.py -> /home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge
+[0.589s] byte-compiling /home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge/vessel_teleop_node.py to vessel_teleop_node.cpython-310.pyc
+[0.590s] running install_data
+[0.590s] copying launch/bridge.launch.py -> /home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/share/holoocean_ros2_bridge/launch
+[0.590s] running install_egg_info
+[0.591s] removing '/home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge-1.0.0-py3.10.egg-info' (and everything under it)
+[0.591s] Copying ../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info to /home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge-1.0.0-py3.10.egg-info
+[0.592s] running install_scripts
+[0.604s] Installing holoocean_bridge script to /home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.604s] Installing vessel_teleop script to /home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+[0.605s] writing list of installed files to '/home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/install.log'
+[0.621s] Invoked command in '/home/yeni-nesil-ida/holo_repo/src/holoocean_repo' returned '0': PYTHONPATH=/home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/yeni-nesil-ida/holo_repo/install/holoocean_ros2_bridge/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/holoocean_ros2_bridge build --build-base /home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/build install --record /home/yeni-nesil-ida/holo_repo/build/holoocean_ros2_bridge/install.log --single-version-externally-managed install_data

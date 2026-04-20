@@ -1,0 +1,5 @@
+[console_scripts]
+dashboard_server = holoocean_ros2_bridge.dashboard_server_node:main
+holoocean_bridge = holoocean_ros2_bridge.holoocean_bridge_node:main
+vessel_teleop = holoocean_ros2_bridge.vessel_teleop_node:main
+

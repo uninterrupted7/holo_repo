@@ -1,0 +1,24 @@
+running egg_info
+writing ../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/PKG-INFO
+writing dependency_links to ../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/dependency_links.txt
+writing entry points to ../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/entry_points.txt
+writing requirements to ../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/requires.txt
+writing top-level names to ../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/top_level.txt
+reading manifest file '../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/SOURCES.txt'
+writing manifest file '../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info/SOURCES.txt'
+running build
+running build_py
+copying holoocean_ros2_bridge/holoocean_bridge_node.py -> /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/build/lib/holoocean_ros2_bridge
+running install
+running install_lib
+copying /home/asemiz/ros2_ws/build/holoocean_ros2_bridge/build/lib/holoocean_ros2_bridge/holoocean_bridge_node.py -> /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge
+byte-compiling /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge/holoocean_bridge_node.py to holoocean_bridge_node.cpython-310.pyc
+running install_data
+running install_egg_info
+removing '/home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge-1.0.0-py3.10.egg-info' (and everything under it)
+Copying ../../../../build/holoocean_ros2_bridge/holoocean_ros2_bridge.egg-info to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/python3.10/site-packages/holoocean_ros2_bridge-1.0.0-py3.10.egg-info
+running install_scripts
+Installing dashboard_server script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+Installing holoocean_bridge script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+Installing vessel_teleop script to /home/asemiz/ros2_ws/install/holoocean_ros2_bridge/lib/holoocean_ros2_bridge
+writing list of installed files to '/home/asemiz/ros2_ws/build/holoocean_ros2_bridge/install.log'

@@ -1,0 +1,1 @@
+/home/asemiz/ros2_ws/src/holo_repo/src/holoocean_repo/scripts/vessel_teleop_wrapper.sh
