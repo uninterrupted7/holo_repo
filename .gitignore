@@ -1,0 +1,46 @@
+# ROS2 Build System
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE and Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Testing and Coverage
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# OS
+*.o
+*.a
+*.so
+.env
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
