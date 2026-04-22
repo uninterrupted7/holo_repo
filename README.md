@@ -1,20 +1,27 @@
 # HoloOcean ROS2 Bridge (ASV Mapping Simulator)
 
-## 🌊 Wait, What Are We Doing Here?
-If you're coming back to this project after a while, **this repository is our simulation testbed for Autonomous Surface Vessel (ASV) seabed mapping.**
+## Please install HoloOcean v2.3.0 First
 
-**Our Big Goal:** Achieve high-fidelity, real-time seabed mapping using a surface vessel in the HoloOcean simulator, bridged directly into our ROS2 Humble ecosystem. 
+Holoocean Docs: [Holoocean Docs](https://byu-holoocean.github.io/holoocean-docs/v2.3.0/index.html)
 
-**Key areas we've been working on:**
-1. **System Integration (The Bridge):** Converting raw data from HoloOcean simulated sensors (`ProfilingSonar`, `IMU`, `GPS`, `DVL`, `Pose`) into standard ROS2 messages (`PointCloud2`, `Imu`, `NavSatFix`, `Odometry`).
-2. **Realistic Dynamics (Fossen Model):** We've integrated Thor I. Fossen's 3-DOF kinematic model into the bridge, taking raw thrust commands and mathematically modelling hydrodynamics (surge, sway, yaw, non-linear damping) before shifting the boat.
-3. **Control Dashboard:** A fully responsive web interface (HTML/JS) running on `rosbridge_server` allows immediate teleoperation control over the vessel while mapping, alongside live telemetry charts.
-4. **Performance Tuning:** We've been optimizing the simulator's computational load to avoid lag. This includes fixing configuration timeouts, tuning the `ProfilingSonar` bounds (`octree_min`, `octree_max`), and running headless optimizations.
-5. **Mapping Tools Integration:** Seamlessly taking our simulated live-action sonar data and feeding it into heavy-duty ROS2 mapping algorithms (like `OctoMap` and `RTABMap`) for 3D reconstructions.
+Then install the environment:
 
-Whenever you run this repo, you're spinning up the HoloOcean 3D simulator to test how well our ASV sonar arrays map the seafloor, keeping framerates fast and ROS2 inputs accurately synced.
+[Holoocean Environment](https://drive.google.com/drive/folders/1G0KdRZkOSUPKUMqNDETGJBVFilPJqJce?usp=sharing)
 
----
+
+Copy environment file to : .**local/share/holoocean/2.3.0/worlds/**
+
+
+## Sonar Data Based Map
+![Base Sonar Data Map](pics/default_scene.png)
+
+![Map with Vessel](pics/scene_vessel.png)
+
+## Mapping Output
+
+![Generated Point Clouds](pics/map.png)
+
+![Generated Point Clouds 2](pics/map1.png)
 
 ## 🛠️ Technical Documentation
 
