@@ -15,7 +15,7 @@ Copy environment file to : .**local/share/holoocean/2.3.0/worlds/**
 ## Sonar Data Based Map
 ![Base Sonar Data Map](pics/default_scene.png)
 
-![Map with Vessel](pics/scene_vessel.png)
+![Map with Vessel](pics/maritime_scene.png)
 
 ## Mapping Output
 
