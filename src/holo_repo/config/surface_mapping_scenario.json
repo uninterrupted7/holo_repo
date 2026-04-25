@@ -20,7 +20,7 @@
             "rotation": [
                 0.0,
                 0.0,
-                0.0
+                -90.0
             ],
             "control_scheme": 0,
             "sensors": [

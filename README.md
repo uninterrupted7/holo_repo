@@ -279,3 +279,19 @@ python -c "import holoocean; holoocean.install('Ocean')"
 **TF errors in RViz:**
 - Ensure launch is running
 - Check `ros2 run tf2_tools view_frames`
+
+scenario format
+{
+    "name": "Example",
+    "platform": "Linux",
+    "version": "2.3.0",
+    "path": "Linux/Holodeck/Binaries/Linux/Holodeck",
+    "worlds": [
+        {
+            "name" : "ExampleWorld",
+            "pre_start_steps": 20,
+            "env_min" : [-1000.0, -1000.0, -1000.0],
+            "env_max" : [1000.0, 1000.0, 10.0]
+        }
+    ]
+}

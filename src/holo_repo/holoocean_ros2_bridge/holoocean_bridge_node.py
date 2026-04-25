@@ -194,12 +194,24 @@ def sonar_to_pointcloud2(
     return pc2
 
 
+def _numpy_resize(arr: np.ndarray, new_h: int, new_w: int) -> np.ndarray:
+    """
+    Resize a 2-D array to (new_h, new_w) using nearest-neighbour sampling.
+    Pure numpy — no OpenCV dependency required.
+    """
+    old_h, old_w = arr.shape[:2]
+    row_idx = (np.arange(new_h) * old_h / new_h).astype(int)
+    col_idx = (np.arange(new_w) * old_w / new_w).astype(int)
+    row_idx = np.clip(row_idx, 0, old_h - 1)
+    col_idx = np.clip(col_idx, 0, old_w - 1)
+    return arr[np.ix_(row_idx, col_idx)]
+
+
 def sonar_intensities_to_image(intensities: np.ndarray, header: Header) -> Image:
     """
     Convert ProfilingSonar raw 2D intensity array to sensor_msgs/Image (mono8).
-    Useful for visualisation in RViz2 as a 'sonar view'.
+    Legacy function kept for backward compatibility.
     """
-    # Normalise to 0-255
     norm = intensities.astype(np.float32)
     if norm.max() > 0:
         norm = (norm / norm.max() * 255.0).astype(np.uint8)
@@ -214,6 +226,243 @@ def sonar_intensities_to_image(intensities: np.ndarray, header: Header) -> Image
     img.is_bigendian = 0
     img.step = img.width
     img.data = norm.flatten().tobytes()
+    return img
+
+
+def profiling_sonar_to_image(
+    intensities: np.ndarray,
+    header: Header,
+    out_width: int = 800,
+    out_height: int = 600,
+    colormap: str = 'gray',
+    log_scale: bool = True,
+    dynamic_range_db: float = 40.0,
+) -> Image:
+    """
+    Convert ProfilingSonar raw 2D intensity array to a colour-mapped,
+    resized sensor_msgs/Image for clear obstacle visualisation.
+
+    Processing pipeline:
+      1. Log-scale compression (20·log10) to bring out weak returns
+      2. Normalise to [0, 255] within the specified dynamic range
+      3. Resize to (out_height × out_width) using nearest-neighbour
+      4. Apply colormap (copper / sonar / gray)
+
+    Parameters
+    ----------
+    intensities : np.ndarray
+        Raw 2-D intensity array from ProfilingSonar (RangeBins × AzimuthBins).
+    header : Header
+        ROS header.
+    out_width : int
+        Output image width in pixels (default 800).
+    out_height : int
+        Output image height in pixels (default 600).
+    colormap : str
+        'copper', 'sonar', or 'gray'.
+    log_scale : bool
+        Apply 20·log10 compression (recommended).
+    dynamic_range_db : float
+        dB window to display.
+
+    Returns
+    -------
+    sensor_msgs/Image
+        rgb8 (colour) or mono8 (gray) encoded image.
+    """
+    wf = intensities.astype(np.float64).copy()
+
+    # ── 1. Log-scale compression ──────────────────────────────────────
+    if log_scale:
+        floor = 1e-10
+        wf = np.clip(wf, floor, None)
+        wf = 20.0 * np.log10(wf)
+        peak = wf.max()
+        wf = np.clip(wf, peak - dynamic_range_db, peak)
+
+    # ── 2. Normalise to 0-255 ─────────────────────────────────────────
+    wf_min, wf_max = wf.min(), wf.max()
+    if wf_max > wf_min:
+        norm = ((wf - wf_min) / (wf_max - wf_min) * 255.0)
+    else:
+        norm = np.zeros_like(wf)
+    indices = norm.astype(np.uint8)
+
+    # ── 3. Resize to output dimensions ────────────────────────────────
+    if indices.shape[0] != out_height or indices.shape[1] != out_width:
+        indices = _numpy_resize(indices, out_height, out_width)
+
+    # ── 4. Apply colourmap ────────────────────────────────────────────
+    if colormap == 'gray':
+        img = Image()
+        img.header = header
+        img.height, img.width = indices.shape
+        img.encoding = 'mono8'
+        img.is_bigendian = 0
+        img.step = img.width
+        img.data = indices.flatten().tobytes()
+        return img
+
+    lut = _COPPER_LUT if colormap == 'copper' else _SONAR_LUT
+    rgb = lut[indices]  # (h, w, 3)
+
+    img = Image()
+    img.header = header
+    img.height, img.width = indices.shape
+    img.encoding = 'rgb8'
+    img.is_bigendian = 0
+    img.step = img.width * 3
+    img.data = rgb.astype(np.uint8).flatten().tobytes()
+    return img
+
+
+# ── Sidescan Sonar Colormap & Waterfall Rendering ─────────────────────────
+
+def _build_copper_lut() -> np.ndarray:
+    """
+    Build a 256×3 uint8 look-up table that replicates matplotlib's 'copper'
+    colormap.  This is the same palette HoloOcean uses in its own examples.
+
+    Copper cmap definition (matplotlib):
+        R = min(1.0, t * 1.25)
+        G = t * 0.7812
+        B = t * 0.4975
+    where t = index / 255.
+    """
+    t = np.linspace(0.0, 1.0, 256, dtype=np.float32)
+    r = np.clip(t * 1.25, 0.0, 1.0)
+    g = t * 0.7812
+    b = t * 0.4975
+    lut = np.stack([r, g, b], axis=-1)  # (256, 3)
+    return (lut * 255.0).astype(np.uint8)
+
+
+_COPPER_LUT = _build_copper_lut()  # computed once at import time
+
+
+def _build_sonar_lut() -> np.ndarray:
+    """
+    Build a 256×3 uint8 LUT matching real sidescan sonar equipment display.
+    Dark seabed → warm amber/yellow highlights, similar to Edgetech / Klein
+    paper-chart style.
+    """
+    t = np.linspace(0.0, 1.0, 256, dtype=np.float32)
+    # Deep amber: dark brown → warm yellow-white
+    r = np.clip(t * 1.1, 0.0, 1.0)
+    g = np.clip(t * 0.85, 0.0, 1.0)
+    b = np.clip(t * 0.45, 0.0, 1.0)
+    lut = np.stack([r, g, b], axis=-1)
+    return (lut * 255.0).astype(np.uint8)
+
+
+_SONAR_LUT = _build_sonar_lut()
+
+
+def sidescan_to_waterfall_image(
+    waterfall: np.ndarray,
+    header: Header,
+    colormap: str = 'copper',
+    log_scale: bool = True,
+    tvg_alpha: float = 0.02,
+    dynamic_range_db: float = 40.0,
+) -> Image:
+    """
+    Convert a sidescan sonar waterfall buffer to a colour-mapped
+    sensor_msgs/Image that looks like real sidescan sonar output.
+
+    Processing pipeline (matches real SSS processors):
+      1. Time-Varying Gain (TVG): compensate range-dependent attenuation
+      2. Log-scale compression: 20·log10 to compress dynamic range
+      3. Normalise to [0, 255] within the specified dynamic range
+      4. Apply colormap LUT (copper = HoloOcean style, sonar = real SSS style)
+
+    Parameters
+    ----------
+    waterfall : np.ndarray
+        2-D float array (rows × range_bins).  Each row is one ping.
+        For true SSS display the columns should be arranged:
+        [port_far ... port_near | stbd_near ... stbd_far]
+        (nadir at centre).
+    header : Header
+        ROS header to attach.
+    colormap : str
+        'copper'  – warm copper tones (HoloOcean / matplotlib default)
+        'sonar'   – amber/yellow tones (realistic SSS equipment look)
+        'gray'    – simple grayscale
+    log_scale : bool
+        Apply 20·log10 compression (recommended for sonar data).
+    tvg_alpha : float
+        TVG gain factor.  Larger = more boost for far-range samples.
+        Set to 0.0 to disable TVG.
+    dynamic_range_db : float
+        How many dB of dynamic range to display (clips values below
+        max_dB - dynamic_range_db).
+
+    Returns
+    -------
+    sensor_msgs/Image
+        rgb8 encoded colour image ready for RViz2 display.
+    """
+    wf = waterfall.astype(np.float64).copy()
+
+    # ── 1. Time-Varying Gain ──────────────────────────────────────────
+    if tvg_alpha > 0.0:
+        n_bins = wf.shape[1]
+        # Range index (distance from nadir at centre)
+        centre = n_bins // 2
+        range_idx = np.abs(np.arange(n_bins) - centre).astype(np.float64)
+        # TVG: multiply each column by (1 + alpha * range_index)
+        tvg = 1.0 + tvg_alpha * range_idx
+        wf *= tvg[np.newaxis, :]
+
+    # ── 2. Log-scale compression ──────────────────────────────────────
+    if log_scale:
+        # Avoid log(0)
+        floor = 1e-10
+        wf = np.clip(wf, floor, None)
+        wf = 20.0 * np.log10(wf)
+        # Clip dynamic range relative to the current maximum
+        peak = wf.max()
+        wf = np.clip(wf, peak - dynamic_range_db, peak)
+
+    # ── 3. Normalise to 0-255 ─────────────────────────────────────────
+    wf_min, wf_max = wf.min(), wf.max()
+    if wf_max > wf_min:
+        norm = ((wf - wf_min) / (wf_max - wf_min) * 255.0)
+    else:
+        norm = np.zeros_like(wf)
+    indices = norm.astype(np.uint8)  # (rows, cols)
+
+    # ── 4. Apply colourmap ────────────────────────────────────────────
+    if colormap == 'gray':
+        # Output mono8 for simple grayscale
+        img = Image()
+        img.header = header
+        img.height, img.width = indices.shape
+        img.encoding = 'mono8'
+        img.is_bigendian = 0
+        img.step = img.width
+        img.data = indices.flatten().tobytes()
+        return img
+
+    lut = _COPPER_LUT if colormap == 'copper' else _SONAR_LUT
+    rgb = lut[indices]  # (rows, cols, 3)
+
+    # ── 5. Draw nadir line (thin dark vertical stripe at centre) ──────
+    centre_col = rgb.shape[1] // 2
+    half_w = max(1, rgb.shape[1] // 200)  # ~0.5% of width
+    c_lo = max(0, centre_col - half_w)
+    c_hi = min(rgb.shape[1], centre_col + half_w + 1)
+    rgb[:, c_lo:c_hi, :] = 0  # dark nadir line
+
+    # ── 6. Build sensor_msgs/Image (rgb8) ─────────────────────────────
+    img = Image()
+    img.header = header
+    img.height, img.width = indices.shape
+    img.encoding = 'rgb8'
+    img.is_bigendian = 0
+    img.step = img.width * 3
+    img.data = rgb.astype(np.uint8).flatten().tobytes()
     return img
 
 
@@ -344,6 +593,28 @@ class HoloOceanBridgeNode(Node):
         self.pub_sidescan_img = self.create_publisher(Image,         '/holoocean/sidescan/image', sensor_qos)
         self._sidescan_waterfall = None
         self._waterfall_rows = 500
+
+        # Sidescan display parameters
+        self.declare_parameter('sidescan_colormap', 'copper')     # 'copper', 'sonar', 'gray'
+        self.declare_parameter('sidescan_log_scale', True)
+        self.declare_parameter('sidescan_tvg_alpha', 0.02)
+        self.declare_parameter('sidescan_dynamic_range_db', 40.0)
+        self._sss_colormap  = self.get_parameter('sidescan_colormap').value
+        self._sss_log_scale = self.get_parameter('sidescan_log_scale').value
+        self._sss_tvg_alpha = self.get_parameter('sidescan_tvg_alpha').value
+        self._sss_dyn_range = self.get_parameter('sidescan_dynamic_range_db').value
+
+        # Profiling sonar display parameters
+        self.declare_parameter('profiling_sonar_width', 800)
+        self.declare_parameter('profiling_sonar_height', 600)
+        self.declare_parameter('profiling_sonar_colormap', 'gray')  # 'gray', 'copper', 'sonar'
+        self.declare_parameter('profiling_sonar_log_scale', True)
+        self.declare_parameter('profiling_sonar_dynamic_range_db', 40.0)
+        self._ps_width    = self.get_parameter('profiling_sonar_width').value
+        self._ps_height   = self.get_parameter('profiling_sonar_height').value
+        self._ps_colormap = self.get_parameter('profiling_sonar_colormap').value
+        self._ps_log_scale = self.get_parameter('profiling_sonar_log_scale').value
+        self._ps_dyn_range = self.get_parameter('profiling_sonar_dynamic_range_db').value
 
         # ── Subscriber ────────────────────────────────────────────────────
         self.sub_cmd = self.create_subscription(
@@ -539,29 +810,63 @@ class HoloOceanBridgeNode(Node):
         )
         self.pub_sonar_pc2.publish(pc2)
 
-        # Raw intensity image (sonar view)
-        img = sonar_intensities_to_image(data, header)
+        # Colour-mapped, resized sonar image for clear obstacle view
+        img = profiling_sonar_to_image(
+            data, header,
+            out_width=self._ps_width,
+            out_height=self._ps_height,
+            colormap=self._ps_colormap,
+            log_scale=self._ps_log_scale,
+            dynamic_range_db=self._ps_dyn_range,
+        )
         self.pub_sonar_img.publish(img)
 
     def _publish_sidescan(self, data: np.ndarray, stamp: Time):
         """
-        SideScanSonar → sensor_msgs/Image (Waterfall)
-        Data comes as intensity rows. We stack them to form a scrolling waterfall image.
+        SideScanSonar → sensor_msgs/Image (colour-mapped Waterfall)
+
+        HoloOcean SidescanSonar returns a 1-D intensity array representing
+        one ping across the full swath (port + starboard).  The first half
+        of the array is the port beam, the second half is starboard.
+
+        Real SSS displays show port reversed so that the nadir (directly
+        below the towfish) sits at the centre of the image:
+            [port_far … port_near | stbd_near … stbd_far]
+
+        Processing applied:
+          • Time-Varying Gain (TVG) — compensates range-dependent attenuation
+          • Log-scale compression — 20·log10 to bring out seabed detail
+          • Copper / Sonar colourmap — matches HoloOcean or real SSS look
         """
-        row = data.flatten()
-        
+        row = data.flatten().astype(np.float32)
+
+        # ── Arrange as [port_reversed | starboard] ────────────────────
+        half = len(row) // 2
+        port = row[:half][::-1]   # reverse port beam
+        stbd = row[half:]
+        ping = np.concatenate([port, stbd])  # nadir at centre
+
         if self._sidescan_waterfall is None:
-            self._sidescan_waterfall = np.zeros((self._waterfall_rows, len(row)), dtype=np.float32)
-        
-        # Roll waterfall (shift rows down) and append the new row at the top
+            self._sidescan_waterfall = np.zeros(
+                (self._waterfall_rows, len(ping)), dtype=np.float32
+            )
+
+        # Roll waterfall (shift rows down) and append the new ping at the top
         self._sidescan_waterfall = np.roll(self._sidescan_waterfall, 1, axis=0)
-        self._sidescan_waterfall[0, :] = row
-        
+        self._sidescan_waterfall[0, :] = ping
+
         header = Header()
         header.stamp = stamp
         header.frame_id = self.sonar_frame
-        
-        img = sonar_intensities_to_image(self._sidescan_waterfall, header)
+
+        img = sidescan_to_waterfall_image(
+            self._sidescan_waterfall,
+            header,
+            colormap=self._sss_colormap,
+            log_scale=self._sss_log_scale,
+            tvg_alpha=self._sss_tvg_alpha,
+            dynamic_range_db=self._sss_dyn_range,
+        )
         self.pub_sidescan_img.publish(img)
 
     def _publish_imu(self, data: np.ndarray, stamp: Time):
