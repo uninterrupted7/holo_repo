@@ -51,9 +51,9 @@
                         "ScaleNoise": true,
                         "AzimuthStreaks": -1,
                         "RangeSigma": 0.05,
-                        "ShowWarning": true,
+                        "ShowWarning": false,
                         "InitOctreeRange": 2000,
-                        "ViewRegion": true,
+                        "ViewRegion": false,
                         "ViewOctree": -1
                     }
                 },
@@ -109,7 +109,7 @@
                     "location": [
                         0.0,
                         0.0,
-                        1.0
+                        -0.5
                     ],
                     "rotation": [
                         0.0,
@@ -118,14 +118,33 @@
                     ],
                     "Hz": 10,
                     "configuration": {
-                        "Azimuth": 170,
+                        "Azimuth": 120,
                         "Elevation": 1,
-                        "RangeMin": 0.5,
-                        "RangeMax": 100.0,
-                        "RangeBins": 1024,
+                        "RangeMin": 10,
+                        "RangeMax": 300.0,
+                        "RangeBins": 4096,
                         "AddSigma": 0.01,
                         "MultSigma": 0.01,
-                        "ViewRegion": true
+                        "ViewRegion": false
+                    }
+                },
+                {
+                    "sensor_type": "RGBCamera",
+                    "location": [
+                        0.0,
+                        0.0,
+                        -0.5
+                    ],
+                    "rotation": [
+                        0.0,
+                        90.0,
+                        0.0
+                    ],
+                    "Hz": 15,
+                    "configuration": {
+                        "CaptureWidth": 640,
+                        "CaptureHeight": 480,
+                        "FOV": 90
                     }
                 }
             ]

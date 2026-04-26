@@ -483,6 +483,7 @@ class HoloOceanBridgeNode(Node):
         self.declare_parameter('sonar_frame', 'sonar_link')
         self.declare_parameter('imu_frame', 'imu_link')
         self.declare_parameter('gps_frame', 'gps_link')
+        self.declare_parameter('camera_frame', 'camera_link')
         self.declare_parameter('lat_origin', 0.0)
         self.declare_parameter('lon_origin', 0.0)
         self.declare_parameter('sonar_intensity_threshold', 0.1)
@@ -506,6 +507,7 @@ class HoloOceanBridgeNode(Node):
         self.sonar_frame  = self.get_parameter('sonar_frame').value
         self.imu_frame    = self.get_parameter('imu_frame').value
         self.gps_frame    = self.get_parameter('gps_frame').value
+        self.camera_frame = self.get_parameter('camera_frame').value
         self.lat_origin   = self.get_parameter('lat_origin').value
         self.lon_origin   = self.get_parameter('lon_origin').value
         self.intensity_th = self.get_parameter('sonar_intensity_threshold').value
@@ -585,13 +587,16 @@ class HoloOceanBridgeNode(Node):
         self.pub_odom        = self.create_publisher(Odometry,       '/holoocean/odom',           10)
         self.pub_pose        = self.create_publisher(PoseStamped,    '/holoocean/pose',           10)
         self.pub_vessel_marker = self.create_publisher(Marker,       '/holoocean/vessel_marker',  10)
+        self.pub_camera_img  = self.create_publisher(Image,          '/holoocean/camera/image',   sensor_qos)
 
         # Fossen dynamics state publishers (for dashboard / analysis)
         self.pub_fossen_vel  = self.create_publisher(TwistStamped,  '/holoocean/fossen/body_vel',   10)
         self.pub_fossen_force= self.create_publisher(TwistStamped,  '/holoocean/fossen/forces',     10)
 
-        self.pub_sidescan_img = self.create_publisher(Image,         '/holoocean/sidescan/image', sensor_qos)
-        self._sidescan_waterfall = None
+        self.pub_sidescan_port_img = self.create_publisher(Image,      '/holoocean/sidescan/port/image', sensor_qos)
+        self.pub_sidescan_stbd_img = self.create_publisher(Image,      '/holoocean/sidescan/starboard/image', sensor_qos)
+        self._waterfall_port = None
+        self._waterfall_stbd = None
         self._waterfall_rows = 500
 
         # Sidescan display parameters
@@ -656,7 +661,7 @@ class HoloOceanBridgeNode(Node):
         self._current_y = 0.0
         self._current_yaw = 0.0
 
-        self._max_thrust = 200.0
+        self._max_thrust = 100.0
         self._kp_heading = 3.0
         self._kp_dist = 6.0
 
@@ -759,6 +764,11 @@ class HoloOceanBridgeNode(Node):
             self.get_logger().warn(f'HoloOcean step failed: {e}')
             return
 
+        # Debug: log available sensors every 100 ticks
+        self._step_count = getattr(self, '_step_count', 0) + 1
+        if self._step_count % 100 == 0:
+            self.get_logger().info(f"Available sensors: {list(state.keys())}")
+
         if np.any(self._command != self._last_cmd):
             self._last_cmd = self._command.copy()
 
@@ -769,7 +779,7 @@ class HoloOceanBridgeNode(Node):
             self._publish_sonar(state['ProfilingSonar'], now)
 
         if 'SidescanSonar' in state:
-            self._publish_sidescan(state['SidescanSonar'], now)
+            self._publish_split_sidescan(state['SidescanSonar'], now)
 
         if 'IMUSensor' in state:
             self._publish_imu(state['IMUSensor'], now)
@@ -782,6 +792,9 @@ class HoloOceanBridgeNode(Node):
 
         if 'PoseSensor' in state:
             self._publish_pose(state['PoseSensor'], now)
+
+        if 'RGBCamera' in state:
+            self._publish_camera(state['RGBCamera'], now)
 
     # ──────────────────────────────────────────────────────────────────────
     # Sensor publishers
@@ -821,53 +834,72 @@ class HoloOceanBridgeNode(Node):
         )
         self.pub_sonar_img.publish(img)
 
-    def _publish_sidescan(self, data: np.ndarray, stamp: Time):
+    def _publish_split_sidescan(self, data: np.ndarray, stamp: Time):
         """
-        SideScanSonar → sensor_msgs/Image (colour-mapped Waterfall)
-
-        HoloOcean SidescanSonar returns a 1-D intensity array representing
-        one ping across the full swath (port + starboard).  The first half
-        of the array is the port beam, the second half is starboard.
-
-        Real SSS displays show port reversed so that the nadir (directly
-        below the towfish) sits at the centre of the image:
-            [port_far … port_near | stbd_near … stbd_far]
-
-        Processing applied:
-          • Time-Varying Gain (TVG) — compensates range-dependent attenuation
-          • Log-scale compression — 20·log10 to bring out seabed detail
-          • Copper / Sonar colourmap — matches HoloOcean or real SSS look
+        Split a single dual-beam SidescanSonar ping into separate Port and
+        Starboard waterfall images.
         """
         row = data.flatten().astype(np.float32)
-
-        # ── Arrange as [port_reversed | starboard] ────────────────────
         half = len(row) // 2
-        port = row[:half][::-1]   # reverse port beam
-        stbd = row[half:]
-        ping = np.concatenate([port, stbd])  # nadir at centre
+        port_ping = row[:half][::-1]  # Reverse for nadir-at-center display
+        stbd_ping = row[half:]
 
-        if self._sidescan_waterfall is None:
-            self._sidescan_waterfall = np.zeros(
-                (self._waterfall_rows, len(ping)), dtype=np.float32
-            )
+        # Port Waterfall
+        if self._waterfall_port is None:
+            self._waterfall_port = np.zeros((self._waterfall_rows, len(port_ping)), dtype=np.float32)
+        self._waterfall_port = np.roll(self._waterfall_port, 1, axis=0)
+        self._waterfall_port[0, :] = port_ping
 
-        # Roll waterfall (shift rows down) and append the new ping at the top
-        self._sidescan_waterfall = np.roll(self._sidescan_waterfall, 1, axis=0)
-        self._sidescan_waterfall[0, :] = ping
+        # Starboard Waterfall
+        if self._waterfall_stbd is None:
+            self._waterfall_stbd = np.zeros((self._waterfall_rows, len(stbd_ping)), dtype=np.float32)
+        self._waterfall_stbd = np.roll(self._waterfall_stbd, 1, axis=0)
+        self._waterfall_stbd[0, :] = stbd_ping
 
-        header = Header()
-        header.stamp = stamp
-        header.frame_id = self.sonar_frame
-
-        img = sidescan_to_waterfall_image(
-            self._sidescan_waterfall,
-            header,
+        # Publish Port
+        h_port = Header(stamp=stamp, frame_id="sonar_port_link")
+        img_port = sidescan_to_waterfall_image(
+            self._waterfall_port, h_port,
             colormap=self._sss_colormap,
             log_scale=self._sss_log_scale,
             tvg_alpha=self._sss_tvg_alpha,
             dynamic_range_db=self._sss_dyn_range,
         )
-        self.pub_sidescan_img.publish(img)
+        self.pub_sidescan_port_img.publish(img_port)
+
+        # Publish Starboard
+        h_stbd = Header(stamp=stamp, frame_id="sonar_starboard_link")
+        img_stbd = sidescan_to_waterfall_image(
+            self._waterfall_stbd, h_stbd,
+            colormap=self._sss_colormap,
+            log_scale=self._sss_log_scale,
+            tvg_alpha=self._sss_tvg_alpha,
+            dynamic_range_db=self._sss_dyn_range,
+        )
+        self.pub_sidescan_stbd_img.publish(img_stbd)
+
+    def _publish_camera(self, data: np.ndarray, stamp: Time):
+        """
+        RGBCamera → sensor_msgs/Image (rgb8)
+
+        HoloOcean RGBCamera returns an (H, W, 4) uint8 array (RGBA).
+        We convert it to rgb8 for standard ROS2 compatibility.
+        """
+        # data is (H, W, 4), uint8
+        rgba = data.astype(np.uint8)
+        rgb = rgba[:, :, :3]  # Strip alpha channel
+
+        img = Image()
+        img.header.stamp = stamp
+        img.header.frame_id = self.camera_frame
+        img.height = rgb.shape[0]
+        img.width = rgb.shape[1]
+        img.encoding = 'rgb8'
+        img.is_bigendian = 0
+        img.step = img.width * 3
+        img.data = rgb.flatten().tobytes()
+
+        self.pub_camera_img.publish(img)
 
     def _publish_imu(self, data: np.ndarray, stamp: Time):
         """
@@ -1023,20 +1055,43 @@ class HoloOceanBridgeNode(Node):
         self.fossen.eta[1] = float(pos[1])
         self.fossen.eta[2] = self._current_yaw
 
-        # Static-ish TF: base_link → sonar_link
-        # (Sonar is mounted below hull, pointing downward)
-        tf_sonar = TransformStamped()
-        tf_sonar.header.stamp = stamp
-        tf_sonar.header.frame_id = self.vessel_frame
-        tf_sonar.child_frame_id  = self.sonar_frame
-        tf_sonar.transform.translation.x = 0.0
-        tf_sonar.transform.translation.y = 0.0
-        tf_sonar.transform.translation.z = -0.3   # 30 cm below keel
-        # Sonar points downward: rotate 90° around X
-        tf_sonar.transform.rotation = euler_to_quaternion(
+        # Static-ish TFs: base_link → sonar_xxx_link
+        # (Sonars are mounted below hull, pointing downward)
+        q_down = euler_to_quaternion(math.pi / 2, 0.0, 0.0)
+
+        # Port Sonar Link
+        tf_port = TransformStamped()
+        tf_port.header.stamp = stamp
+        tf_port.header.frame_id = self.vessel_frame
+        tf_port.child_frame_id  = "sonar_port_link"
+        tf_port.transform.translation.y = -0.5  # mounted on port side
+        tf_port.transform.translation.z = -0.5  # depth
+        tf_port.transform.rotation = q_down
+        self.tf_broadcaster.sendTransform(tf_port)
+
+        # Starboard Sonar Link
+        tf_stbd = TransformStamped()
+        tf_stbd.header.stamp = stamp
+        tf_stbd.header.frame_id = self.vessel_frame
+        tf_stbd.child_frame_id  = "sonar_starboard_link"
+        tf_stbd.transform.translation.y = 0.5   # mounted on stbd side
+        tf_stbd.transform.translation.z = -0.5  # depth
+        tf_stbd.transform.rotation = q_down
+        self.tf_broadcaster.sendTransform(tf_stbd)
+
+        # Static-ish TF: base_link → camera_link
+        tf_camera = TransformStamped()
+        tf_camera.header.stamp = stamp
+        tf_camera.header.frame_id = self.vessel_frame
+        tf_camera.child_frame_id  = self.camera_frame
+        tf_camera.transform.translation.x = 0.0
+        tf_camera.transform.translation.y = 0.0
+        tf_camera.transform.translation.z = -0.5   # 50 cm below keel
+        # Camera points downward: rotate 90° around X (match scenario pitch 90)
+        tf_camera.transform.rotation = euler_to_quaternion(
             math.pi / 2, 0.0, 0.0
         )
-        self.tf_broadcaster.sendTransform(tf_sonar)
+        self.tf_broadcaster.sendTransform(tf_camera)
 
         # Vessel marker for RViz visualization
         marker = Marker()
